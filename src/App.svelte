@@ -2,7 +2,7 @@
   import { fade } from 'svelte/transition';
   import { afterUpdate } from 'svelte';
   const arraySize = 10;
-  let cols = [];
+  let cols = []; //main container for grid numbers
   let adjacents = [];
   let targ = null;
   let lastTarg = null;
@@ -17,13 +17,15 @@
       this.move = null;
     }
   }
-
+  //set up grid
   for (let i = 0; i < arraySize; i++) {
     cols.push([]);
     for (let j = 0; j < arraySize; j++) {
       cols[i].push(new Square(Math.floor(Math.random() * 9 + 1), i, j));
     }
   }
+
+  //runs when a square is clicked, changing the targ
   $: if (targ) {
     const direction = adjacents.indexOf(targ);
     if (direction != -1) {
@@ -41,6 +43,8 @@
       lastTarg = targ;
     }
   }
+
+  //handles swapping squares, pausing interaction and then initiates match check
   function swap(direction) {
     moving = true;
     targ.move = moveTransform[direction];
@@ -54,6 +58,8 @@
     }, 500);
     setTimeout(() => checkMatches(), 600);
   }
+
+  //checks for matches of 3 in a row horizontally and vertically
   function checkMatches() {
     let matches = new Set();
     for (let x = 0; x < arraySize; x++) {
@@ -72,7 +78,7 @@
         }
       }
     }
-
+    //this line removes the matches from the grid
     cols = cols.map((col) => col.filter((x) => !matches.has(x)));
     if (matches.size === 0) {
       moving = false;
@@ -80,10 +86,12 @@
       setTimeout(() => {
         refill();
         moving = false;
-        checkMatches();
+        checkMatches(); //ensures any new matches created by 'falling' squares are found
       }, 500);
     }
   }
+
+  //refills each column with new tiles after a match is cleared
   function refill() {
     for (let x = 0; x < arraySize; x++) {
       const shortage = arraySize - cols[x].length;
@@ -103,8 +111,8 @@
     {#each cols as col, i}
       <div class="column">
         {#each col as square, j (square)}
-          <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
           <div
+            role="button"
             tabindex="0"
             class="square"
             on:click={() => {
